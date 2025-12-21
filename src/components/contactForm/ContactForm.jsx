@@ -1,35 +1,38 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { nanoid } from "nanoid";
 import * as Yup from "yup";
+import { useDispatch } from "react-redux";
 
-import styles from './ContactForm.module.css';
+import { addContact } from "../../redux/contactsSlice";
+
+import styles from "./ContactForm.module.css";
 
 const validationSchema = Yup.object({
   name: Yup.string()
     .required("required")
     .min(3, "At least 3 characters")
-    .max(30, "Maximum 50 characters"),
+    .max(30, "Maximum 30 characters"),
   number: Yup.string()
     .required("required")
-    .min(9, "At least 9 characters")
-    .max(9, "Maximum 9 characters"),
+    .length(9, "Must be exactly 9 characters"),
 });
 
-const ContactForm = ({ onAdd }) => {
+const ContactForm = () => {
+  const dispatch = useDispatch();
+
   return (
     <div className={styles.frame}>
       <Formik
         initialValues={{ name: "", number: "" }}
         validationSchema={validationSchema}
-        onSubmit={(values, { resetForm, setSubmitting }) => {
-          const contact = {
-            id: nanoid(),
-            name: values.name.trim(),
-            number: values.number.trim(),
-          };
-          const ok = onAdd(contact);
-          setSubmitting(false);
-          if (ok) resetForm();
+        onSubmit={(values, { resetForm }) => {
+          dispatch(
+            addContact({
+              name: values.name.trim(),
+              number: values.number.trim(),
+            })
+          );
+
+          resetForm();
         }}
       >
         {({ isSubmitting }) => (
@@ -37,25 +40,16 @@ const ContactForm = ({ onAdd }) => {
             <label>
               Name:
               <Field name="name" />
-              <ErrorMessage
-                name="name"
-                component="div"
-              />
+              <ErrorMessage name="name" component="div" />
             </label>
 
             <label>
-              Number: 
+              Number:
               <Field name="number" />
-              <ErrorMessage
-                name="number"
-                component="div"
-              />
+              <ErrorMessage name="number" component="div" />
             </label>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <button type="submit" disabled={isSubmitting}>
               Add Contact
             </button>
           </Form>
